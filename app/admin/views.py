@@ -7,8 +7,9 @@
     *************模块文档注释**************
 """
 from app.admin import admin
+from flask import render_template
 
 
 @admin.route('/')
 def index():
-    return '<h1 style="color:red">this is admin</h1>'
+    return '<h1>123</h1>'
