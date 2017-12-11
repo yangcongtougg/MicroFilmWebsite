@@ -194,10 +194,11 @@ class Oplog(db.Model):
         return '<Oplog %r>' % self.id
 
 if __name__ == '__main__':
-     db.create_all()
+    # db.create_all()
     # role = Role(name='hello', auths='')
     # db.session.add(role)
     # db.session.commit()
+    print('123')
 
 
 
