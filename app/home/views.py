@@ -53,3 +53,12 @@ def animation():
 @home.route('/search/')
 def search():
     return render_template('home/search.html')
+
+@home.route('/play/')
+def play():
+    return render_template('home/play.html')
+
+# 配置404页面,需要在蓝图初始化的时候定义
+# @home.errorhandler(404)
+# def page_not_found(error):
+#     return render_template('home/404.html'), 404
