@@ -6,15 +6,9 @@
 """
     *************模块文档注释**************
 """
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+
 from datetime import datetime
-
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/movie?charset=utf8'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-db = SQLAlchemy(app)
+from app import db
 
 # 会员表
 class User(db.Model):
@@ -29,13 +23,13 @@ class User(db.Model):
     add_time = db.Column(db.DateTime, index=True, default=datetime.now)
     uuid = db.Column(db.String(255), unique=True)
 
-
-    user_logs = db.relationship('Userlog', backref='user') # 会员日志外键关系关联
-    comments = db.relationship('Comment', backref='user') # 评论外键关系关联
+    user_logs = db.relationship('Userlog', backref='user')  # 会员日志外键关系关联
+    comments = db.relationship('Comment', backref='user')  # 评论外键关系关联
     moviecols = db.relationship('Moviecol', backref='user')  # 收藏外键关系关联
 
     def __repr__(self):
         return '<User %r>' % self.name
+
 
 # 会员登录日志
 class Userlog(db.Model):
@@ -57,11 +51,11 @@ class Tag(db.Model):
     name = db.Column(db.String(100), unique=True)
     add_time = db.Column(db.DateTime, index=True, default=datetime.now)
 
-
-    movies = db.relationship('Movie', backref='tag') # 电影的外键关联
+    movies = db.relationship('Movie', backref='tag')  # 电影的外键关联
 
     def __repr__(self):
         return '<Tag %r>' % self.name
+
 
 # 电影
 class Movie(db.Model):
@@ -79,13 +73,13 @@ class Movie(db.Model):
     length = db.Column(db.String(100))
     add_time = db.Column(db.DateTime, index=True, default=datetime.now)
 
-
     tag_id = db.Column(db.Integer, db.ForeignKey('tag.id'))
     comments = db.relationship('Comment', backref='movie')  # 关联用户的评论
     moviecols = db.relationship('Moviecol', backref='movie')  # 关联用户的评论
 
     def __repr__(self):
         return '<Movie %r>' % self.title
+
 
 # 上映预告
 class Preview(db.Model):
@@ -105,12 +99,12 @@ class Comment(db.Model):
     content = db.Column(db.Text)
     add_time = db.Column(db.DateTime, index=True, default=datetime.now)
 
-
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __repr__(self):
         return '<Comment %r>' % self.id
+
 
 # 电影收藏
 class Moviecol(db.Model):
@@ -118,12 +112,12 @@ class Moviecol(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     add_time = db.Column(db.DateTime, index=True, default=datetime.now)
 
-
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __repr__(self):
         return '<Moviecol %r>' % self.id
+
 
 # 权限
 class Auth(db.Model):
@@ -136,6 +130,7 @@ class Auth(db.Model):
     def __repr__(self):
         return '<Auth %r>' % self.name
 
+
 # 角色
 class Role(db.Model):
     __tablename__ = 'role'
@@ -144,11 +139,11 @@ class Role(db.Model):
     auths = db.Column(db.String(600))
     add_time = db.Column(db.DateTime, index=True, default=datetime.now)
 
-
     admin = db.relationship('Admin', backref='role')
 
     def __repr__(self):
         return '<Role %r>' % self.name
+
 
 # 管理员
 class Admin(db.Model):
@@ -156,9 +151,8 @@ class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True)
     pwd = db.Column(db.String(100), unique=True)
-    is_super = db.Column(db.SmallInteger) # 0为超级管理员
+    is_super = db.Column(db.SmallInteger)  # 0为超级管理员
     add_time = db.Column(db.DateTime, index=True, default=datetime.now)
-
 
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'))  # 角色
     admin_log = db.relationship('Adminlog', backref='admin')
@@ -166,7 +160,10 @@ class Admin(db.Model):
 
     def __repr__(self):
         return '<Admin %r>' % self.id
-
+    # 验证登录密码
+    def check_pwd(self, pwd):
+        from werkzeug.security import check_password_hash
+        return check_password_hash(self.pwd, pwd)
 
 # 管理员登录日志
 class Adminlog(db.Model):
@@ -179,6 +176,7 @@ class Adminlog(db.Model):
 
     def __repr__(self):
         return '<Adminlog %r>' % self.id
+
 
 # 操作日志
 class Oplog(db.Model):
@@ -193,33 +191,9 @@ class Oplog(db.Model):
     def __repr__(self):
         return '<Oplog %r>' % self.id
 
-if __name__ == '__main__':
-    # db.create_all()
-    # role = Role(name='hello', auths='')
-    # db.session.add(role)
-    # db.session.commit()
-    print('123')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# if __name__ == '__main__':
+#     # db.create_all()
+#     # role = Role(name='hello', auths='')
+#     # db.session.add(role)
+#     # db.session.commit()
+#     print('123')
