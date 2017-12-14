@@ -1,1 +1,8 @@
 .idea
+app\__pycache__\__init__.cpython-36.pyc
+app\__pycache__\models.cpython-36.pyc
+app\admin\__pycache__\__init__.cpython-36.pyc
+app\admin\__pycache__\forms.cpython-36.pyc
+app\admin\__pycache__\views.cpython-36.pyc
+app\home\__pycache__\__init__.cpython-36.pyc
+app\home\__pycache__\views.cpython-36.pyc
