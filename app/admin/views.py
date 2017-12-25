@@ -9,11 +9,12 @@
 from flask import render_template, redirect, url_for, flash, session, request
 
 from app.admin import admin
-from app.admin.forms import LoginForm
-from app.models import Admin
+from app.admin.forms import LoginForm, TagForm
+from app.models import Admin, Tag
 from functools import wraps
+from app import db
 
-# 访问控制器必须登录
+# 访问控制器必须登录,相当于路由的拦截器
 def admin_login_req(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -33,21 +34,21 @@ def index():
 @admin.route('/login/', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    if form.validate_on_submit():
-        data = form.data
+    if form.validate_on_submit(): # 表示提交的时候要进行验证
+        data = form.data # 表单的数据根据form.data来获取
         admin = Admin.query.filter_by(name=data['account']).first()
         if not admin.check_pwd(data['pwd']):
             flash('密码错误!')
-            return redirect(url_for('admin.login') or request.args.get('next'))
-        session['admin'] = data['account']
-        return redirect(url_for('admin.index'))
+            return redirect(url_for('admin.login'))
+        session['admin'] = data['account'] # 如果账号是正确的我们就要定义一个session的会话来保存我们的账号
+        return redirect(url_for('admin.index') or request.args.get('next'))
     return render_template('admin/login.html', form=form)
 
 
 @admin.route('/logout/')
 @admin_login_req
 def logout():
-    session.pop('admin', None)
+    session.pop('account', None)
     return redirect(url_for('admin.login'))
 
 
@@ -57,10 +58,22 @@ def pwd():
     return render_template('admin/pwd.html')
 
 
-@admin.route('/tag/add/')
+@admin.route('/tag/add/', methods=['GET', 'POST'])
 @admin_login_req
 def tag_add():
-    return render_template('admin/tag_add.html')
+    form = TagForm()
+    if form.validate_on_submit():
+        data = form.data
+        tag = Tag.query.filter_by(name=data['name']).count()
+        if tag == 1:
+            flash('名称已经存在，不能重复添加', 'err')
+            return redirect(url_for('admin.tag_add'))
+        tag = Tag(name=data['name'])
+        db.session.add(tag)
+        db.session.commit()
+        flash('标签添加成功', 'ok')
+        return redirect(url_for('admin.tag_add'))
+    return render_template('admin/tag_add.html', form=form)
 
 
 @admin.route('/tag/list/')
