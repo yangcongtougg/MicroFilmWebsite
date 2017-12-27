@@ -86,8 +86,9 @@ class Movie(db.Model):
 # 上映预告
 class Preview(db.Model):
     __tablename__ = 'preview'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True) # 默认的主键
     title = db.Column(db.String(255), unique=True)
+    logo = db.Column(db.String(255), unique=True)
     add_time = db.Column(db.DateTime, index=True, default=datetime.now)
 
     def __repr__(self):

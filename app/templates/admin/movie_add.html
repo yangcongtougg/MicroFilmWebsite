@@ -26,6 +26,13 @@
                             {{msg}}
                         </div>
                         {% endfor %}
+                        {% for msg in get_flashed_messages(category_filter=["err"]) %}
+                        <div class="alert alert-danger alert-dismissable">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true"></button>
+                            <h4><i class="icon fa fa-ban">操作失败</i></h4>
+                            {{msg}}
+                        </div>
+                        {% endfor %}
                         <!---->
                         <div class="form-group">
                             <label for="input_title">{{form.title.label}}</label>
