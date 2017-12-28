@@ -40,18 +40,19 @@
                             <th>注册时间</th>
                             <th>操作事项</th>
                         </tr>
+                        {% for i in page_data.items %}
                         <tr>
-                            <td>1</td>
-                            <td>拓荒者</td>
-                            <td>1780316635@qq.com</td>
-                            <td>13700632835</td>
+                            <td>{{i.id}}</td>
+                            <td>{{i.name}}</td>
+                            <td>{{i.email}}</td>
+                            <td>{{i.phone}}</td>
                             <td>
-                                <img data-src="holder.js/50x50" class="img-responsive center-block" alt="">
+                                <img src="{{url_for('static', filename='uploads/+i.face')}}" style="width: 50px" class="img-responsive center-block" alt="">
                             </td>
                             <td>正常/冻结</td>
-                            <td>2017-06-01 12:00:00</td>
+                            <td>{{i.add_time}}</td>
                             <td>
-                                <a class="label label-success" href="{{url_for('admin.user_view')}}">查看</a>
+                                <a class="label label-success" href="{{url_for('admin.user_view' ,id=i.id)}}">查看</a>
                                 &nbsp;
                                 <a class="label label-info">解冻</a>
                                 &nbsp;
@@ -60,6 +61,7 @@
                                 <a class="label label-danger">删除</a>
                             </td>
                         </tr>
+                        {% endfor %}
                         </tbody>
                     </table>
                 </div>

@@ -8,13 +8,13 @@
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, FileField, TextAreaField, SelectField
+from wtforms import StringField, PasswordField, SubmitField, FileField, TextAreaField, SelectField, SelectMultipleField
 from wtforms.validators import DataRequired, ValidationError
 
-from app.models import Admin, Tag
+from app.models import Admin, Tag, Auth
 
 tags = Tag.query.all()
-
+auth_list = Auth.query.all() # 因为下面有选择框，需要先查询到所有的结果
 
 # log提交表单
 class LoginForm(FlaskForm):
@@ -109,3 +109,84 @@ class PreviewForm(FlaskForm):
     )
 
     submit = SubmitField('添加', render_kw={'class': 'btn btn-primary'})
+
+class AuthForm(FlaskForm):
+    name = StringField(
+        label='权限名称',
+        validators=[DataRequired('请输入权限名称')],
+        description='权限名称',
+        render_kw={
+            'class': 'form-control', 'id': 'input_name', 'placeholder': '请输入权限名称!'
+        }
+    )
+
+    url = StringField(
+        label='权限地址',
+        validators=[DataRequired('请输入权限地址')],
+        description='权限地址',
+        render_kw={
+            'class': 'form-control', 'id': 'input_name', 'placeholder': '请输入权限地址!'
+        }
+    )
+
+    submit = SubmitField('添加', render_kw={'class': 'btn btn-primary'})
+
+class RoleForm(FlaskForm):
+    name = StringField(
+        label='角色名称',
+        validators=[DataRequired('请输入角色名称')],
+        description='角色名称',
+        render_kw={
+            'class': 'form-control', 'id': 'input_name', 'placeholder': '请输入角色名称!'
+        }
+    )
+
+    auths = SelectMultipleField(
+        label='权限列表',
+        validators=[
+            DataRequired('请选择权限列表')
+        ],
+        description='权限列表',
+        coerce=int,
+        choices=[(i.id, i.name) for i in auth_list],
+        render_kw={
+            'class': 'form-control'
+        }
+    )
+
+    submit = SubmitField(
+        '添加',
+        render_kw={
+            'class': 'btn btn-primary'
+        }
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

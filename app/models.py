@@ -142,7 +142,7 @@ class Role(db.Model):
     auths = db.Column(db.String(600))
     add_time = db.Column(db.DateTime, index=True, default=datetime.now)
 
-    admin = db.relationship('Admin', backref='role')
+    admin = db.relationship('Admin', backref='role') # 管理员外键关联
 
     def __repr__(self):
         return '<Role %r>' % self.name

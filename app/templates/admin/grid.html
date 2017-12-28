@@ -79,7 +79,7 @@
         </a>
         <ul class="treeview-menu">
             <li id="g-5-1">
-                <a href="{{url_for('admin.user_list')}}">
+                <a href="{{url_for('admin.user_list', page=1)}}">
                     <i class="fa fa-circle-o"></i> 会员列表
                 </a>
             </li>
@@ -150,7 +150,7 @@
                 </a>
             </li>
             <li id="g-9-2">
-                <a href="{{url_for('admin.auth_list')}}">
+                <a href="{{url_for('admin.auth_list', page=1)}}">
                     <i class="fa fa-circle-o"></i> 权限列表
                 </a>
             </li>
