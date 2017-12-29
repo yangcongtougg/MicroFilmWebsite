@@ -9,12 +9,13 @@
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, FileField, TextAreaField, SelectField, SelectMultipleField
-from wtforms.validators import DataRequired, ValidationError
+from wtforms.validators import DataRequired, ValidationError, equal_to
 
-from app.models import Admin, Tag, Auth
+from app.models import Admin, Tag, Auth, Role
 
 tags = Tag.query.all()
 auth_list = Auth.query.all() # 因为下面有选择框，需要先查询到所有的结果
+role_list = Role.query.all()
 
 # log提交表单
 class LoginForm(FlaskForm):
@@ -161,8 +162,52 @@ class RoleForm(FlaskForm):
         }
     )
 
+class AdminForm(FlaskForm):
+    name = StringField(
+        label='管理员名称',
+        validators=[DataRequired('请输入管理员名称')],
+        description='管理员名称',
+        render_kw={
+            'class': 'form-control', 'id': 'input_name', 'placeholder': '请输入管理员名称!'
+        }
+    )
 
+    pwd = PasswordField(
+        label='管理员密码',
+        validators=[DataRequired('请输入管理员密码')],
+        description='管理员密码',
+        render_kw={
+            'class': 'form-control', 'id': 'input_name', 'placeholder': '请输入管理员密码!'
+        }
+    )
 
+    repwd = PasswordField(
+        label='管理员重复密码',
+        validators=[DataRequired('请再次输入密码!'), equal_to('pwd', '密码输入不一致')],
+        description='管理员重复密码',
+        render_kw={
+            'class': 'form-control', 'id': 'input_name', 'placeholder': '请再次输入密码!'
+        }
+    )
+    role_id = SelectField(
+        label='所属角色',
+        # validators=[
+        #     DataRequired('--请选择所属角色--')
+        # ],
+        # description='所属角色',
+        coerce=int,
+        choices=[(i.id, i.name) for i in role_list],
+        render_kw={
+            'class': 'form-control'
+        }
+    )
+
+    submit = SubmitField(
+        '添加',
+        render_kw={
+            'class': 'btn btn-primary'
+        }
+    )
 
 
 

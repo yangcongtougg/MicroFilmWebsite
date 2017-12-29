@@ -11,12 +11,12 @@ import uuid
 from datetime import datetime
 from functools import wraps
 
-from flask import render_template, redirect, url_for, flash, session, request
+from flask import render_template, redirect, url_for, flash, session, request, abort
 from werkzeug.utils import secure_filename  # 确保上传的文件名称正确
 
 from app import db, app
 from app.admin import admin
-from app.admin.forms import LoginForm, TagForm, MovieForm, PreviewForm, AuthForm,RoleForm
+from app.admin.forms import LoginForm, TagForm, MovieForm, PreviewForm, AuthForm, RoleForm, AdminForm
 from app.models import Admin, Tag, Movie, Preview, User, Auth, Role
 
 
@@ -30,7 +30,20 @@ def admin_login_req(f):
         return f(*args, **kwargs)
 
     return decorated_function
-
+# 权限访问控制器
+def admin_auth(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        admin = Admin.query.join(Role).filter(Role.id == Admin.role_id, Admin.id == session['admin_id']).first()
+        auths = admin.role.auths
+        auths = list(map(lambda i: int(i), auths.split(',')))
+        auth_list = Auth.query.all()
+        urls = [i.url for i in auth_list for val in auths if val == i.id]
+        rule = request.url_rule
+        if str(rule) not in urls:
+            abort(404)
+        return f(*args, **kwargs)
+    return decorated_function
 
 # 修改文件名称
 def change_filename(filename):
@@ -96,6 +109,7 @@ def tag_add():
 @admin.route('/tag/list/<int:page>/', methods=['GET'])
 @admin_login_req
 def tag_list(page=None):
+    print(session)
     if page is None:
         page = 1
     page_data = Tag.query.order_by(Tag.add_time.desc()).paginate(page=page, per_page=5)  # 进行数据库的排序及查找
@@ -307,6 +321,7 @@ def preview_edit(id=None):
         return redirect(url_for('admin.preview_edit', id=id))
     return render_template('admin/preview_edit.html', form=form, preview=preview)
 
+
 # 用户列表
 @admin.route('/user/list/<int:page>/', methods=['GET'])
 @admin_login_req
@@ -352,6 +367,7 @@ def adminloginlog_list():
 def userloginlog_list():
     return render_template('admin/userloginlog_list.html')
 
+
 # 添加权限
 @admin.route('/auth/add/', methods=['GET', 'POST'])
 @admin_login_req
@@ -374,6 +390,7 @@ def auth_add():
         return redirect(url_for('admin.auth_add'))
     return render_template('admin/auth_add.html', form=form)
 
+
 # 权限列表
 @admin.route('/auth/list/<int:page>', methods=['GET'])
 @admin_login_req
@@ -382,6 +399,7 @@ def auth_list(page=None):
         page = 1
     page_data = Auth.query.order_by(Auth.add_time.desc()).paginate(page=page, per_page=5)
     return render_template('admin/auth_list.html', page_data=page_data)
+
 
 # 删除权限
 @admin.route('/auth/del/<int:id>', methods=['GET'])
@@ -393,6 +411,7 @@ def auth_del(id=None):
     flash('权限删除成功', 'ok')
     return redirect(url_for('admin.auth_list', page=1))
 
+
 # 角色添加
 @admin.route('/role/add/', methods=['GET', 'POST'])
 @admin_login_req
@@ -401,35 +420,58 @@ def role_add():
     if form.validate_on_submit():
         data = form.data
         print(data)
-        # role_count = Role.query.filter_by(name=data['name']).count()
-        # if role_count == 1:
-        #     flash('角色名称已经存在不能重复添加', 'err')
-        #     return redirect(url_for('admin.role_add'))
+        role_count = Role.query.filter_by(name=data['name']).count()
+        if role_count == 1:
+            flash('角色名称已经存在不能重复添加', 'err')
+            return redirect(url_for('admin.role_add'))
         # auths_count = Role.query.filter_by(url=data['url']).count()
         # if auths_count == 1:
         #     flash('标签已经存在不能重复添加', 'err')
         #     return redirect(url_for('admin.role_add'))
-        # role = Role(name=data['name'], auths=','.join(map(lambda i: str(i), data['auths'])))
-        # db.session.add(role)
-        # db.session.commit()
-        # flash('角色添加成功', 'ok')
-        # return redirect(url_for('admin.role_add'))
+        role = Role(name=data['name'], auths=','.join(map(lambda i: str(i), data['auths'])))
+        db.session.add(role)
+        db.session.commit()
+        flash('角色添加成功', 'ok')
+        return redirect(url_for('admin.role_add'))
     return render_template('admin/role_add.html', form=form)
 
 
-@admin.route('/role/list/')
+# 角色列表
+@admin.route('/role/list/<int:page>/', methods=['GET'])
 @admin_login_req
-def role_list():
-    return render_template('admin/role_list.html')
+def role_list(page=None):
+    if page is None:
+        page = 1
+    page_data = Role.query.order_by(Role.add_time.desc()).paginate(page=page, per_page=5)
+    return render_template('admin/role_list.html', page_data=page_data)
 
 
-@admin.route('/admin/add/')
+# 添加管理员
+@admin.route('/admin/add/', methods=['GET', 'POST'])
 @admin_login_req
 def admin_add():
-    return render_template('admin/admin_add.html')
+    form = AdminForm()
+    from werkzeug.security import generate_password_hash
+    if form.validate_on_submit():
+        data = form.data
+        # admin_count = Admin.query.filter_by(name=data['name']).count()
+        # if admin_count == 1:
+        #     flash('管理员名称不能重复添加', 'err')
+        #     return redirect(url_for('admin.admin_add'))
+        admin = Admin(name=data['name'], pwd=generate_password_hash(data['pwd']), role_id=data['role_id'],
+                          is_super=1)
+        db.session.add(admin)
+        db.session.commit()
+        flash('管理员添加成功', 'ok')
+        return redirect(url_for('admin.admin_add'))
+    return render_template('admin/admin_add.html', form=form)
 
 
-@admin.route('/admin/list/')
+# 管理员列表
+@admin.route('/admin/list/<int:page>/', methods=['GET'])
 @admin_login_req
-def admin_list():
-    return render_template('admin/admin_list.html')
+def admin_list(page=None):
+    if page is None:
+        page = 1
+    page_data = Admin.query.join(Role).filter(Role.id == Admin.role_id).order_by(Admin.add_time.desc()).paginate(page=page, per_page=5)
+    return render_template('admin/admin_list.html', page_data=page_data)
